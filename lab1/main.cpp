@@ -4,7 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 
-int NOD(int a, int b)
+long long NOD(long long a, long long b)
 {
     while (a > 0 && b > 0) {
         if (a > b)
@@ -21,10 +21,11 @@ struct FractionalNum {
     // -------------
     //  denominator
 
-    int numerator;
-    int denominator;
+    long long numerator;
+    long long denominator;
 
-    FractionalNum(int numerator = 1, int denominator = 1) : numerator(numerator), denominator(denominator)
+    FractionalNum(long long numerator = 1, long long denominator = 1)
+        : numerator(numerator), denominator(denominator)
     {
         assert(denominator != 0);
         to_short();
@@ -32,10 +33,7 @@ struct FractionalNum {
 
     void check_sign()
     {
-        if (numerator < 0 && denominator < 0) {
-            numerator = -numerator;
-            denominator = -denominator;
-        } else if (denominator < 0) {
+        if (denominator < 0) {
             numerator = -numerator;
             denominator = -denominator;
         }
@@ -45,6 +43,7 @@ struct FractionalNum {
     {
         numerator *= b.numerator;
         denominator *= b.denominator;
+        to_short();
     }
 
     FractionalNum operator*(const FractionalNum& other)
@@ -68,6 +67,7 @@ struct FractionalNum {
             throw std::runtime_error("division by zero");
         numerator *= b.denominator;
         denominator *= b.numerator;
+        to_short();
     }
 
     FractionalNum operator/(const FractionalNum& other)
@@ -89,6 +89,7 @@ struct FractionalNum {
     {
         numerator = numerator * b.denominator + b.numerator * denominator;
         denominator = denominator * b.denominator;
+        to_short();
     }
 
     FractionalNum operator+(const FractionalNum& other)
@@ -108,9 +109,10 @@ struct FractionalNum {
 
     void sub(const FractionalNum& b)
     {
-        int temp = numerator * b.denominator - b.numerator * denominator;
+        long temp = numerator * b.denominator - b.numerator * denominator;
         numerator = temp;
         denominator = denominator * b.denominator;
+        to_short();
     }
 
     FractionalNum operator-(const FractionalNum& other)
@@ -140,7 +142,7 @@ struct FractionalNum {
             return;
         }
 
-        int nod = NOD(abs(numerator), abs(denominator));
+        long long nod = NOD(abs(numerator), abs(denominator));
         numerator /= nod;
         denominator /= nod;
         check_sign();
@@ -170,7 +172,7 @@ struct FractionalNum {
 
     friend std::istream& operator>>(std::istream& os, FractionalNum& num)
     {
-        int numer = 1, denomin = 1;
+        long long numer = 1, denomin = 1;
         char ch = 0;
 
         os >> numer >> ch;
@@ -192,9 +194,9 @@ struct FractionalNum {
     }
 };
 
-void rsly_gauss(FractionalNum** a, FractionalNum* x, int n)
+void rsly_gauss(FractionalNum** a, FractionalNum* x, long long n)
 {
-    int imax, i, j, k;
+    long long imax, i, j, k;
     FractionalNum amax, c;
 
     for (k = 0; k < n; k++) {
@@ -240,9 +242,9 @@ void rsly_gauss(FractionalNum** a, FractionalNum* x, int n)
     }
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    std::ifstream file("slau.txt");
+    std::ifstream file(argv[1]);
     FractionalNum** a;
     FractionalNum* x;
     size_t n = 0;
