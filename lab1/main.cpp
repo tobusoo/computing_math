@@ -200,17 +200,21 @@ void print_maxtrix(FractionalNum** a, FractionalNum* x, size_t n)
 {
     for (size_t i = 0; i < n; i++) {
         for (size_t j = 0; j < n - 1; j++) {
-            std::cout << a[i][j] << "x" << j + 1 << " + ";
+            // std::cout << a[i][j] << "x" << j + 1 << " + ";
+            std::cout << a[i][j] << ' ';
         }
-        std::cout << a[i][n - 1] << "x" << n - 1 << " = ";
+        std::cout << a[i][n - 1] << ' ';
+        // std::cout << a[i][n - 1] << "x" << n << " = ";
         std::cout << x[i] << '\n';
     }
+    std::cout << '\n';
 }
 
-void rsly_gauss(FractionalNum** a, FractionalNum* x, long long n)
+int rsly_gauss(FractionalNum** a, FractionalNum* x, long long n)
 {
     long long imax, i, j, k;
     FractionalNum amax, temp_value;
+    std::vector<int> where(n, -1);
 
     for (k = 0; k < n; k++) {
         imax = k;
@@ -227,7 +231,11 @@ void rsly_gauss(FractionalNum** a, FractionalNum* x, long long n)
             std::swap(x[k], x[imax]);
         }
 
+        if (a[k][k].numerator == 0) {
+            continue;
+        }
         temp_value = FractionalNum(1) / a[k][k];
+        where[k] = k;
 
         for (i = k; i < n; i++) {
             a[k][i] *= temp_value;
@@ -239,16 +247,47 @@ void rsly_gauss(FractionalNum** a, FractionalNum* x, long long n)
                 a[i][j] -= a[i][k] * a[k][j];
             }
             x[i] -= a[i][k] * x[k];
+
+            // Зануление столбцов
+            // a[i][k] -= a[i][k] * a[k][k]; // Всегда равно 0
+            a[i][k] = 0;
         }
+
         print_maxtrix(a, x, n);
-        printf("\n");
     }
 
-    for (i = n - 2; i >= 0; i--) {
+    bool is_inf_or_zero_sol = false;
+    std::vector<FractionalNum> x_before(x, x + n);
+    for (i = n - 1; i >= 0; i--) {
+        if (where[i] == -1) {
+            x[i] = FractionalNum(0);
+            is_inf_or_zero_sol = true;
+            continue;
+        }
         for (j = i + 1; j < n; j++) {
             x[i] -= a[i][j] * x[j];
         }
     }
+
+    if (is_inf_or_zero_sol) {
+        for (i = 0; i < n; i++) {
+            FractionalNum sum(0);
+            for (j = 0; j < n; j++) {
+                sum += x[j] * a[i][j];
+            }
+            sum -= x_before[i];
+            temp_value = sum.fabs();
+            if (temp_value.numerator != 0)
+                return 0;
+        }
+
+        for (i = 0; i < n; ++i) {
+            if (where[i] == -1)
+                return -1; // INFINITY SOLUTION
+        }
+    }
+
+    return 1;
 }
 
 int main(int argc, char* argv[])
@@ -279,14 +318,17 @@ int main(int argc, char* argv[])
     }
 
     print_maxtrix(a, x, n);
-    std::cout << '\n';
 
-    rsly_gauss(a, x, n);
-
-    for (size_t i = 0; i < n; i++) {
-        std::cout << x[i] << ' ';
-    }
-    std::cout << '\n';
+    int solutions = rsly_gauss(a, x, n);
+    if (solutions == 1) {
+        for (size_t i = 0; i < n; i++) {
+            std::cout << x[i] << ' ';
+        }
+        std::cout << '\n';
+    } else if (solutions == -1)
+        printf("Infinity solutions\n");
+    else
+        printf("Zero solutions\n");
 
     return 0;
 }
