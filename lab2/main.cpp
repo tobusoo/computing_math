@@ -5,255 +5,112 @@
 #include <iostream>
 #include <numeric>
 #include <stdexcept>
+#include <tuple>
 
-struct FractionalNum {
-    //   numerator
-    // -------------
-    //  denominator
-
-    long long numerator;
-    long long denominator;
-
-    FractionalNum(long long numerator = 1, long long denominator = 1)
-        : numerator(numerator), denominator(denominator)
-    {
-        assert(denominator != 0);
-        to_short();
-    }
-
-    void check_sign()
-    {
-        if (denominator < 0) {
-            numerator = -numerator;
-            denominator = -denominator;
-        }
-    }
-
-    void mul(const FractionalNum& b)
-    {
-        numerator *= b.numerator;
-        denominator *= b.denominator;
-        to_short();
-    }
-
-    FractionalNum operator*(const FractionalNum& other)
-    {
-        FractionalNum temp(numerator, denominator);
-        temp.mul(other);
-
-        return temp;
-    }
-
-    FractionalNum& operator*=(const FractionalNum& other)
-    {
-        this->mul(other);
-
-        return *this;
-    }
-
-    void div(const FractionalNum& b)
-    {
-        if (b.numerator == 0)
-            throw std::runtime_error("division by zero");
-        numerator *= b.denominator;
-        denominator *= b.numerator;
-        to_short();
-    }
-
-    FractionalNum operator/(const FractionalNum& other)
-    {
-        FractionalNum temp(numerator, denominator);
-        temp.div(other);
-
-        return temp;
-    }
-
-    FractionalNum& operator/=(const FractionalNum& other)
-    {
-        this->div(other);
-
-        return *this;
-    }
-
-    void sum(const FractionalNum& b)
-    {
-        numerator = numerator * b.denominator + b.numerator * denominator;
-        denominator = denominator * b.denominator;
-        to_short();
-    }
-
-    FractionalNum operator+(const FractionalNum& other)
-    {
-        FractionalNum temp(numerator, denominator);
-        temp.sum(other);
-
-        return temp;
-    }
-
-    FractionalNum& operator+=(const FractionalNum& other)
-    {
-        this->sum(other);
-
-        return *this;
-    }
-
-    void sub(const FractionalNum& b)
-    {
-        numerator = numerator * b.denominator - b.numerator * denominator;
-        denominator = denominator * b.denominator;
-        to_short();
-    }
-
-    FractionalNum operator-(const FractionalNum& other)
-    {
-        FractionalNum temp(numerator, denominator);
-        temp.sub(other);
-
-        return temp;
-    }
-
-    FractionalNum& operator-=(const FractionalNum& other)
-    {
-        this->sub(other);
-
-        return *this;
-    }
-
-    FractionalNum fabs()
-    {
-        return FractionalNum(std::fabs(numerator), std::fabs(denominator));
-    }
-
-    void to_short()
-    {
-        assert(denominator != 0);
-        if (numerator == 0) {
-            denominator = 1;
-            return;
-        }
-
-        long long nod = std::gcd(numerator, denominator);
-        numerator /= nod;
-        denominator /= nod;
-        check_sign();
-    }
-
-    FractionalNum& operator=(const FractionalNum& other)
-    {
-        if (this != &other) {
-            numerator = other.numerator;
-            denominator = other.denominator;
-        }
-
-        return *this;
-    }
-
-    friend std::ostream& operator<<(std::ostream& os, FractionalNum& num)
-    {
-        num.to_short();
-
-        if (num.denominator == 1)
-            os << num.numerator;
-        else
-            os << num.numerator << '/' << num.denominator;
-
-        return os;
-    }
-
-    bool operator>(const FractionalNum& b) const
-    {
-        double temp = numerator / denominator;
-        double temp2 = b.numerator / b.denominator;
-        return temp > temp2;
-    }
-
-    bool operator<(const FractionalNum& b) const
-    {
-        return !(*this > b);
-    }
-
-    friend std::istream& operator>>(std::istream& os, FractionalNum& num)
-    {
-        long long numer = 1, denomin = 1;
-        char ch = 0;
-
-        os >> numer >> ch;
-        if (ch != '/') {
-            num.numerator = numer;
-            num.denominator = 1;
-            os.putback(ch);
-        } else {
-            os >> denomin;
-            if (denomin == 0) {
-                throw std::runtime_error("Could not read the number");
-            }
-            num.numerator = numer;
-            num.denominator = denomin;
-        }
-
-        num.to_short();
-        return os;
-    }
-};
-
-void print_maxtrix(FractionalNum** a, FractionalNum* x, size_t n)
+void print_maxtrix(double** a, double* x, size_t n)
 {
     for (size_t i = 0; i < n; i++) {
         for (size_t j = 0; j < n - 1; j++) {
-            // std::cout << a[i][j] << "x" << j + 1 << " + ";
-            std::cout << a[i][j] << ' ';
+            std::cout << a[i][j] << "x" << j + 1 << " + ";
+            // std::cout << a[i][j] << ' ';
         }
-        std::cout << a[i][n - 1] << ' ';
-        // std::cout << a[i][n - 1] << "x" << n << " = ";
+        // std::cout << a[i][n - 1] << ' ';
+        std::cout << a[i][n - 1] << "x" << n << " = ";
         std::cout << x[i] << '\n';
     }
     std::cout << '\n';
 }
 
-int seidel(FractionalNum** a, FractionalNum* x, long long n)
+bool is_diagonal_predominance(double** a, size_t n)
 {
-    return 0;
+    for (size_t i = 0; i < n; i++) {
+        double sum = 0;
+        for (size_t j = 0; j < n; j++)
+            sum += std::fabs(a[i][j]);
+        sum -= std::fabs(a[i][i]);
+        if (sum > a[i][i])
+            return false;
+    }
+
+    return true;
+}
+
+bool is_converge(std::vector<double>& x1, std::vector<double>& x2, size_t n, double eps)
+{
+    double distance = 0;
+    for (size_t i = 0; i < n; i++) {
+        distance += (x1[i] - x2[i]) * (x1[i] - x2[i]);
+    }
+    distance = std::sqrt(distance);
+
+    return distance < eps;
+}
+
+std::tuple<std::vector<double>, size_t> seidel(double** a, double* b, size_t n, double eps)
+{
+    std::vector<double> x(n, 0);
+    std::vector<double> prev(n, 0);
+    size_t iter = 0;
+
+    do {
+        for (size_t i = 0; i < n; i++) {
+            prev[i] = x[i];
+        }
+        for (size_t i = 0; i < n; i++) {
+            double temp = 0;
+            for (size_t j = 0; j < n; j++) {
+                if (j != i)
+                    temp += a[i][j] * x[j];
+            }
+            x[i] = (b[i] - temp) / a[i][i];
+        }
+        iter++;
+    } while (!is_converge(x, prev, n, eps));
+
+    return std::make_tuple(x, iter);
 }
 
 int main(int argc, char* argv[])
 {
     std::ifstream file(argv[1]);
-    FractionalNum** a;
-    FractionalNum* x;
+    double** a;
+    double* b;
     size_t n = 0;
     file >> n;
+
     try {
-        a = new FractionalNum*[n];
+        a = new double*[n];
         for (size_t i = 0; i < n; i++) {
-            a[i] = new FractionalNum[n];
+            a[i] = new double[n];
         }
-        x = new FractionalNum[n];
+        b = new double[n];
     } catch (const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
 
-    FractionalNum num;
+    double num;
     for (size_t i = 0; i < n; i++) {
         for (size_t j = 0; j < n; j++) {
             file >> num;
             a[i][j] = num;
         }
         file >> num;
-        x[i] = num;
+        b[i] = num;
     }
 
-    print_maxtrix(a, x, n);
+    print_maxtrix(a, b, n);
+    if (!is_diagonal_predominance(a, n)) {
+        std::cout << "The SLAE doesn't converge" << '\n';
+    }
 
-    int solutions = seidel(a, x, n);
-    if (solutions == 1) {
-        for (size_t i = 0; i < n; i++) {
-            std::cout << x[i] << ' ';
-        }
-        std::cout << '\n';
-    } else if (solutions == -1)
-        printf("Infinity solutions\n");
-    else
-        printf("Zero solutions\n");
+    double eps = 1e-5;
+    auto [x, iter] = seidel(a, b, n, eps);
+
+    std::cout << iter << " iterations; eps = " << eps << "\nSolution:\n";
+    for (size_t i = 0; i < x.size(); i++) {
+        std::cout << x[i] << ' ';
+    }
+    std::cout << '\n';
 
     return 0;
 }
