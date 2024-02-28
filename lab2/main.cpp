@@ -16,23 +16,67 @@ void print_maxtrix(double** a, double* x, size_t n)
         }
         // std::cout << a[i][n - 1] << ' ';
         std::cout << a[i][n - 1] << "x" << n << " = ";
-        std::cout << x[i] << '\n';
+        if (x == NULL)
+            std::cout << '\n';
+        else
+            std::cout << x[i] << '\n';
     }
     std::cout << '\n';
 }
 
-bool is_diagonal_predominance(double** a, size_t n)
+bool is_diagonal_predominance_h(double** a, size_t n)
 {
     for (size_t i = 0; i < n; i++) {
         double sum = 0;
         for (size_t j = 0; j < n; j++)
             sum += std::fabs(a[i][j]);
         sum -= std::fabs(a[i][i]);
-        if (sum > a[i][i])
+        if (sum > std::fabs(a[i][i]))
             return false;
     }
 
     return true;
+}
+
+bool is_diagonal_predominance(double** a, double* x, size_t n)
+{
+    if (is_diagonal_predominance_h(a, n)) {
+        return true;
+    }
+
+    for (size_t i = 0; i < n; i++) {
+        double sum = 0;
+        for (size_t j = 0; j < n; j++)
+            sum += std::fabs(a[i][j]);
+        sum -= std::fabs(a[i][i]);
+        if (sum > std::fabs(a[i][i])) {
+            bool swap = false;
+            // std::cout << i << '\n';
+            size_t l = i;
+            for (size_t k = i + 1; k < n; k++) {
+                sum = 0;
+                for (size_t j = 0; j < n; j++)
+                    sum += std::fabs(a[k][j]);
+                sum -= std::fabs(a[k][l]);
+                // std::cout << sum << ' ' << std::fabs(a[k][l]) << '\n';
+                if (sum <= std::fabs(a[k][l])) {
+                    std::swap(a[i], a[k]);
+                    std::swap(x[i], x[k]);
+                    swap = true;
+                    break;
+                }
+            }
+            if (!swap) {
+                // print_maxtrix(a, x, n);
+                return 0;
+            }
+            // print_maxtrix(a, x, n);
+        }
+    }
+
+    // print_maxtrix(a, x, n);
+
+    return is_diagonal_predominance_h(a, n);
 }
 
 bool is_converge(std::vector<double>& x1, std::vector<double>& x2, size_t n, double eps)
@@ -99,9 +143,11 @@ int main(int argc, char* argv[])
     }
 
     print_maxtrix(a, b, n);
-    if (!is_diagonal_predominance(a, n)) {
+    if (!is_diagonal_predominance(a, b, n)) {
         std::cout << "The SLAE doesn't converge" << '\n';
+        return 0;
     }
+    print_maxtrix(a, b, n);
 
     double eps = 1e-5;
     auto [x, iter] = seidel(a, b, n, eps);
