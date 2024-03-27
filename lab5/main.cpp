@@ -26,7 +26,7 @@ double integral(Func func, double a, double b, double eps)
     double delta = eps * 2;
     double s1, s0 = integralRect(a, b, n, func);
 
-    while (delta <= eps) {
+    while (delta >= eps) {
         n *= 2;
         s1 = integralRect(a, b, n, func);
         delta = std::fabs(s0 - s1) / 3;
@@ -48,8 +48,11 @@ int main(int argc, char* argv[])
     const double eps = std::atof(argv[3]);
 
     auto start = std::chrono::system_clock::now();
+    std::cout << "Integral on ";
+    printf("[%.2f; %.2f] = ", a, b);
     std::cout << integral(f, a, b, eps) << '\n';
     auto end = std::chrono::system_clock::now();
+    printf("eps = %.1e\n", eps);
 
     std::chrono::duration<double> elapsed_seconds = end - start;
     std::cout << "Elapsed time: " << elapsed_seconds.count() << '\n';
